@@ -1,0 +1,47 @@
+{
+  "name": "undox",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@gitlab.uni-koblenz.de:jannic/ngrx-undoable.git",
+  "author": "jannicbeck <jannicbeck@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "clean": "rimraf dist coverage",
+    "build": "tsc index.ts --module commonjs",
+    "test": "jest",
+    "test:watch": "npm test -- --watch",
+    "test:cov": "npm test -- --coverage"
+  },
+  "keywords": [
+    "redux",
+    "undo",
+    "redo",
+    "undoable",
+    "undo-redo",
+    "redux-undo",
+    "react-undo",
+    "ngrx-undo",
+    "angular-undo",
+    "angular2-undo"
+  ],
+  "devDependencies": {
+    "@types/jest": "^21.1.8",
+    "jest": "^21.2.1",
+    "ts-jest": "^21.1.0",
+    "typescript": "^2.6.2"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/test/.*\\.test.(ts|tsx|js)$"
+  }
+}

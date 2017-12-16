@@ -1,0 +1,14 @@
+# dependencies
+node_modules
+
+# testing
+coverage
+
+# production
+dist
+
+# misc
+.cache
+.DS_Store
+.env
+npm-debug.log
