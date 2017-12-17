@@ -49,11 +49,11 @@ selectors.getPresentState(state4) // 2
 const state5 = reducer(state4, undo())
 selectors.getPresentState(state5) // 1
 
-state5 // { history: [ { type: 'INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1 }
+state5 // { history: [ { type: 'undox/INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1 }
 
 selectors.getPresentAction(state5) // { type: 'INCREMENT' }
 selectors.getPastStates(state5)    // [ 0 ]
-selectors.getPastActions(state5)   // [ { type: 'INIT' } ]
+selectors.getPastActions(state5)   // [ { type: 'undox/INIT' } ]
 selectors.getFutureStates(state5)  // [ 2 ]
 selectors.getFutureActions(state5) // { type: 'INCREMENT' }
 

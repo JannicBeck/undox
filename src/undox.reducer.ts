@@ -114,7 +114,7 @@ const delegate: Delegate = (state, action, reducer, comparator) => {
 
 export const undox = <S, A extends Action>(
   reducer: Reducer<S, A>,
-  initAction = { type: 'INIT' } as A,
+  initAction = { type: 'undox/INIT' } as A,
   comparator: Comparator<S> = (s1, s2) => s1 === s2
   ) => {
 

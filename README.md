@@ -53,11 +53,11 @@ selectors.getPresentState(state4) // 2
 const state5 = reducer(state4, { type: UndoxTypes.UNDO })
 selectors.getPresentState(state5) // 1
 
-state5 // { history: [ { type: 'INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1 }
+state5 // { history: [ { type: 'undox/INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1 }
 
 selectors.getPresentAction(state5) // { type: 'INCREMENT' }
 selectors.getPastStates(state5)    // [ 0 ]
-selectors.getPastActions(state5)   // [ { type: 'INIT' } ]
+selectors.getPastActions(state5)   // [ { type: 'undox/INIT' } ]
 selectors.getFutureStates(state5)  // [ 2 ]
 selectors.getFutureActions(state5) // { type: 'INCREMENT' }
 
@@ -109,21 +109,21 @@ If the payload is greater than (past/future).length, all actions will be undone/
 
 ```js
 const state = {
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
+  history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
   index   : 3
 }
 
 const state2 = reducer(state, undo(100))
 
 {
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
+  history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
   index   : 0
 }
 
 reducer(state, redo(100))
 
 {
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
+  history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
   index   : 3
 }
 
@@ -144,14 +144,14 @@ const incrementTwice = { type: UndoxTypes.GROUP, payload: [ { type: 'INCREMENT' 
 const state1 = reducer(initialState, incrementTwice)
 
 {
-  history : [ { type: 'INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
+  history : [ { type: 'undox/INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
   index   : 1
 }
 
 const state2 = reducer(state1, undo(1))
 
 {
-  history : [ { type: 'INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
+  history : [ { type: 'undox/INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
   index   : 0
 }
 ```
@@ -159,7 +159,7 @@ const state2 = reducer(state1, undo(1))
 ## Parameters
 
 ### initAction
-You may have wondered where `{ type: 'INIT' }` inside the history comes from.
+You may have wondered where `{ type: 'undox/INIT' }` inside the history comes from.
 It is the default init action with which your reducer is called when it is initialized.
 
 ```js
