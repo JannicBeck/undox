@@ -166,8 +166,8 @@ It is the default init action with which your reducer is called when it is initi
 const reducer = undox(counter, { type: 'MY_CUSTOM_INIT' })
 
 {
-  history    : [ { type: 'MY_CUSTOM_INIT' } ],
-  index : 0
+  history : [ { type: 'MY_CUSTOM_INIT' } ],
+  index   : 0
 }
 ```
 
