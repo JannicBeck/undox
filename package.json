@@ -1,7 +1,7 @@
 {
   "name": "undox",
   "version": "1.2.1",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "repository": "git@gitlab.uni-koblenz.de:jannic/ngrx-undoable.git",
   "author": "jannicbeck <jannicbeck@gmail.com>",
   "license": "MIT",
@@ -10,8 +10,8 @@
     "src"
   ],
   "scripts": {
-    "clean": "rimraf dist coverage lib",
-    "build": "tsc index.ts --module commonjs --outDir lib",
+    "clean": "rimraf dist coverage dist",
+    "build": "tsc index.ts --module commonjs --outDir dist",
     "test": "jest",
     "test:watch": "npm test -- --watch",
     "test:cov": "npm test -- --coverage"
