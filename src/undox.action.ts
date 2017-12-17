@@ -44,7 +44,7 @@ export interface GroupAction<A extends Action> extends Action {
  * Action Creators
  */
 
-export const redo = (nStates): RedoAction => {
+export const redo = (nStates = 1): RedoAction => {
   return {
     type    : UndoxTypes.REDO,
     payload : nStates
@@ -52,7 +52,7 @@ export const redo = (nStates): RedoAction => {
 }
 
 
-export const undo = (nStates): UndoAction => {
+export const undo = (nStates = 1): UndoAction => {
   return {
     type    : UndoxTypes.UNDO,
     payload : nStates
