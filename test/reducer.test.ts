@@ -7,7 +7,7 @@ import { counter, init, increment, decrement, CounterAction } from './helpers/co
 
 describe('The undox.reducer', () => {
 
-  const reducer = undox(counter, init()).reducer  
+  const reducer = undox(counter, init())
   type UndoxCounter = UndoxState<number, CounterAction>
 
   describe('initial state', () => {
@@ -194,6 +194,25 @@ describe('The undox.reducer', () => {
 
       const actualState = reducer(initialState, action)
       expect(actualState).toEqual(expectedState)
+    })
+
+    it('should redo multiple greater than future', () => {
+
+      const initialState = {
+        history : [ init(), increment(), increment(), increment() ],
+        index   : 0
+      }
+
+      const redoAction = redo(100)
+
+      const expectedState = {
+        history : [ init(), increment(), increment(), increment() ],
+        index   : 3
+      }
+
+      const actualState = reducer(initialState, redoAction)
+      expect(actualState).toEqual(expectedState)
+
     })
 
   }) // ==== redo multiple ====

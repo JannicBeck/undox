@@ -8,11 +8,10 @@ import {
 /**
  * A simple Redux Action
  */
-export interface Action {
-  type      : string
-  payload?  : any
+export interface Action<T = any> {
+  type     : T
+  payload? : any
 }
-
 
 /**
  * The Reducer which is passed to the Undox Reducer.
@@ -21,10 +20,9 @@ export interface Action {
  * @template A Action object type.
  * 
  */
-export interface Reducer<S, A extends Action> {
-  (state: Readonly<S>, action: A): S
+export interface Reducer<S =  any, A extends Action = Action> {
+  (state: S | undefined, action: A): S
 }
-
 
 /**
  * The State object type of the undox reducer
@@ -41,32 +39,6 @@ export interface UndoxState<S, A extends Action> {
   index   : number
 }
 
-
-// action should be `UndoxAction | A` but this ruins type safety inside the undox reducer
-/**
- * The undox higher order reducer, wraps the provided reducer and
- * creates a history from it.
- * 
- * @template S State object type.
- * @template A Action object type.
- * 
- */
-export interface Undox {
-  <S, A extends Action>(reducer: Reducer<S, A>, initAction?: A, comparator?: Comparator<S>): UndoxMap<S, A>
-}
-
-
-export interface UndoxMap<S, A extends Action> {
-  reducer   : UndoxReducer<S, A>
-  selectors : Selectors<S, A>
-}
-
-
-export interface UndoxReducer<S, A extends Action> {
-  (state: UndoxState<S, A>, action: UndoxAction<A>): UndoxState<S, A>
-}
-
-
 /**
  * 
  * A function which compares two states in order to detect state changes.
@@ -79,28 +51,3 @@ export interface UndoxReducer<S, A extends Action> {
  * 
  */
 export type Comparator<S> = (s1: S, s2: S) => boolean
-
-
-/**
- * Selectors which can be used to select get the states from Undox.
- * 
- * @member getPastStates An Array of State objects that represent the past in the order: [oldest, latest]
- * @member getPresentState The current State
- * @member getFutureStates An Array of State objects that represent the future in the order: [latest, oldest]
- * 
- * @member getPastActions An Array of Action objects that represent the past in the order: [oldest, latest]
- * @member getPresentAction The current Action
- * @member getFutureActions An Array of Action objects that represent the future in the order: [latest, oldest]
- *  
- * @template S State object type.
- * @template A Action object type.
- * 
- */
-export interface Selectors<S, A extends Action> {
-  getPastStates    : (state: UndoxState<S, A>) => S[]
-  getPresentState  : (state: UndoxState<S, A>) => S
-  getFutureStates  : (state: UndoxState<S, A>) => S[]
-  getPastActions   : (state: UndoxState<S, A>) => A[]
-  getLatestAction  : (state: UndoxState<S, A>) => A
-  getFutureActions : (state: UndoxState<S, A>) => A[]
-}

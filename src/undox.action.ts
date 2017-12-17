@@ -60,7 +60,7 @@ export const undo = (nStates = 1): UndoAction => {
 }
 
 
-export const group = <A extends Action>(...actions: A[]): GroupAction<A> => {
+export const group = <A extends Action>(actions: A[]): GroupAction<A> => {
   return {
     type    : UndoxTypes.GROUP,
     payload : actions

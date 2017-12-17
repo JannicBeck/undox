@@ -1,12 +1,11 @@
 import 'jest';
-
 import { counter, init, increment, CounterAction } from './helpers/counter';
 import { undox } from '../src/undox.reducer';
 import { UndoxState } from '../src/interfaces/public';
 
 describe('comparator', () => {
 
-  const reducer = undox(counter).reducer
+  const reducer = undox(counter)
   type UndoxCounter = UndoxState<number, CounterAction>
 
   it('should not add an action to history if it does not change state', () => {
@@ -28,7 +27,7 @@ describe('comparator', () => {
 
     // comparator which always returns that states are equal,
     // so no action should be added to the history
-    const reducerWithComparator = undox(counter, init(), (s1, s2) => true).reducer
+    const reducerWithComparator = undox(counter, init(), (s1, s2) => true)
 
     const initialState: UndoxCounter = {
       history : [ init() ],
@@ -46,7 +45,7 @@ describe('comparator', () => {
 
     // comparator which always returns that states are non equal,
     // so every action should be added to the history
-    const reducerWithComparator = undox(counter, init(), (s1, s2) => false).reducer
+    const reducerWithComparator = undox(counter, init(), (s1, s2) => false)
 
     const initialState: UndoxCounter = {
       history : [ init() ],

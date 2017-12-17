@@ -1,4 +1,4 @@
-# <img src='https://github.com/JannicBeck/undox/blob/master/logo/logo.png?raw=true' height='30'> undox
+# <img src='https://github.com/JannicBeck/undox/blob/master/logo/logo.png?raw=true' height='30'> Undox
 
 Redux/Ngrx implementation of Undo/Redo based on an action history
 
@@ -18,31 +18,170 @@ yarn add undox --save
 
 ## Usage
 ```js
-import { undox } from 'undox'
+import { undox, createSelectors, UndoxTypes } from 'undox'
 
-const undoxMap = undox(reducer, initAction)
-const undoxReducer = undoxMap.reducer
-const undoxSelectors = undoxMap.selectors
+// the reducer which we want to add undo/redo functionality to
+const counter = (state = 0, action) => {
+  switch (action.type) {
+    case 'INCREMENT':
+      return state + 1
+    default:
+      return state
+  }
+}
+
+// wrap the counter reducer with undox
+// it works just like the counter reducer, except
+// it has additional UNDO/REDO/GROUP actions
+const reducer = undox(counter)
+
+// get the selectors to query the new state
+const selectors = createSelectors(counter)
+
+const state1 = reducer(undefined, { type: 'INCREMENT' })
+selectors.getPresentState(state1) // 1
+
+const state2 = reducer(state1, { type: 'INCREMENT' })
+selectors.getPresentState(state2) // 2
+
+const state3 = reducer(state2, { type: UndoxTypes.UNDO })
+selectors.getPresentState(state3) // 1
+
+const state4 = reducer(state3, { type: UndoxTypes.REDO })
+selectors.getPresentState(state4) // 2
+
+const state5 = reducer(state4, { type: UndoxTypes.UNDO })
+selectors.getPresentState(state5) // 1
+
+state5 // { history: [ { type: 'INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1 }
+
+selectors.getPresentAction(state5) // { type: 'INCREMENT' }
+selectors.getPastStates(state5)    // [ 0 ]
+selectors.getPastActions(state5)   // [ { type: 'INIT' } ]
+selectors.getFutureStates(state5)  // [ 2 ]
+selectors.getFutureActions(state5) // { type: 'INCREMENT' }
+
+const state6 = reducer(state5, { type: UndoxTypes.GROUP, payload: [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] })
+selectors.getPresentState(state6) // 3
+
+const state7 = reducer(state6, { type: UndoxTypes.UNDO })
+selectors.getPresentState(state7) // 1
 
 ```
-`reducer` is the reducer which you want to add undo and redo functionality to and `initAction` is the action which initializes your `reducer`.
 
-`undoxReducer` is the higher order reducer, which works just like your `reducer` except that the `state` now looks like this:
+As you see only the actions are stored inside a history array and an index points to the present action.
+
+Past actions will appear left of the present and future actions on the right of the present.
+
+To retrieve the actual state you use the selector ``getPresentState``.
+
+### Selectors
+The selectors are the contract between this library and your code. They won't change and guarantee
+that I won't break your app when adding features to this library.
+
+#### Custom Selectors
+Of course you can create your own selectors, but make sure you use the existing ones as an input for your new ones f.e. using [reselect](https://github.com/reactjs/reselect):
+```js
+createSelector(getPastStates, pastStates => pastStates.filter(x => x > 1))
+createSelector(getPastActions, getPresentAction, (pastActions, presentAction) => [...pastActions, presentAction])
+
+```
+
+### Undo
+There are two recommended ways to create an undo action:
+1. Use the action creator
+```js
+import { undo, redo, group } from 'undox'
+const undoAction = undo()
+const redoAction = redo()
+const groupAction = group()
+```
+2. Use the UndoxTypes
+```js
+import { UndoxTypes } from 'undox'
+const undoAction = { type: UndoxTypes.UNDO }
+const redoAction = { type: UndoxTypes.REDO }
+const groupAction = { type: UndoxTypes.GROUP }
+```
+
+The payload of the undo/redo action corresponds to the number of steps to undo/redo, it defaults to 1.
+If the payload is greater than (past/future).length, all actions will be undone/redone.
 
 ```js
 const state = {
-  history : [ { type: 'INIT_ACTION' }, { type: 'PAST_ACTION' }, { type: 'CURRENT_ACTION' }, { type: 'FUTURE_ACTION' } ],
-  index   : 2
+  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
+  index   : 3
 }
 
-undoxSelectors.getPresentState(state)
+const state2 = reducer(state, undo(100))
+
+{
+  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
+  index   : 0
+}
+
+reducer(state, redo(100))
+
+{
+  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
+  index   : 3
+}
+
 ```
 
-As you see only the actions are stored inside an array and an index points to the present action.
+### Group
+The group action is a sepcial undox action. It will group the actions given in the payload, and store them as an array inside the history. Undo/Redo will then undo/redo them as one single step.
+```js
+import { group } from 'undox'
+const incrementTwice = group({ type: 'INCREMENT' }, { type: 'INCREMENT' })
+```
+```js
+import { UndoxTypes } from 'undox'
+const incrementTwice = { type: UndoxTypes.GROUP, payload: [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] }
+```
 
-Past actions will appear left of the present and future actions on the right side of the present.
+```js
+const state1 = reducer(initialState, incrementTwice)
 
-You retrieve the actual state via a selector (see the section on selectors).
+{
+  history : [ { type: 'INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
+  index   : 1
+}
+
+const state2 = reducer(state1, undo(1))
+
+{
+  history : [ { type: 'INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
+  index   : 0
+}
+```
+
+## Parameters
+
+### initAction
+You may have wondered where `{ type: 'INIT' }` inside the history comes from.
+It is the default init action with which your reducer is called when it is initialized.
+
+```js
+const reducer = undox(counter, { type: 'MY_CUSTOM_INIT' })
+
+{
+  history    : [ { type: 'MY_CUSTOM_INIT' } ],
+  index : 0
+}
+```
+
+### Comparator (optional)
+The third argument of `undox` is a comparator function which compares two states in order to detect state changes.
+
+- If it evaluates to true, the action history is not updated and the state is returned.
+- If it evaluates to false, the action history is updated and the new state is returned.
+- The default comparator uses strict equality `(s1, s2) => s1 === s2`.
+- To add every action to the history one would provide the comparator `(s1, s2) => false`.
+
+```js
+reducer(counter, initAction, (s1, s2) => false)
+```
 
 ## Motivation
 **TL:DR**
@@ -81,207 +220,3 @@ This library instead only stores actions, which results in some nice advantages,
 - Takes up more space inside localStorage for fat actions and thin states
 - Worse performance for fat actions and thin states
 - Less feature rich than redux-undo
-
-## Examples
-
-Lets look at the popular [counter](https://github.com/reactjs/redux/tree/master/examples/counter) example.
-
-```js
-const undoxCounter = undox(counter, { type: 'INIT' })
-
-const reducer = undoxCounter.reducer
-const selectors = undoxCounter.selectors
-
-const initialState = undoxCounter(undefined, {})
-
-{
-  history : [ { type: 'INIT' } ],
-  index   : 0
-}
-
-const state1 = undoxCounter(initialState, { type: 'INCREMENT' })
-
-{
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' } ],
-  index   : 1
-}
-
-const state2 = undoxCounter(state1, { type: 'DECREMENT' })
-
-{
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'DECREMENT' } ],
-  index   : 2
-}
-```
-
-### Selectors
-`const undoxSelectors = undox(counter).selectors`
-
-These are your selectors to query the undox state, use them!!
-
-The selectors are the contract between this library and your code. They won't change and guarantee
-that I won't break your app when adding features to this library.
-
-#### State Selectors
-```js
-undoxSelectors.getPastStates(state)
-
-// An Array of State objects that represent the past in the order: [oldest, latest]
-[ 0, 1 ]
-```
-
-```js
-undoxSelectors.getPresentState(state)
-
-// The current State
-2
-```
-
-```js
-undoxSelectors.getFutureStates(state)
-
-// An Array of State objects that represent the future in the order: [latest, oldest]
-[ 3, 4 ]
-```
-
-#### Action Selectors
-```js
-undoxSelectors.getPastActions(state)
-
-// An Array of Action objects that represent the past in the order: [oldest, latest]
-[ { type: 'INIT' }, { type: 'INCREMENT' } ]
-```
-```js
-undoxSelectors.getLatestAction(state)
-
-// The latest Action
-{ type: 'INCREMENT' }
-```
-
-```js
-undoxSelectors.getFutureActions(state)
-
-// An Array of Action objects that represent the future in the order: [latest, oldest]
-[ { type: 'INCREMENT' }, { type: 'INCREMENT' } ]
-```
-
-#### Custom Selectors
-Of course you can create your own selectors, but make sure you use the existing ones as an input for your new ones f.e. using [reselect](https://github.com/reactjs/reselect):
-```js
-createSelector(getPastStates, pastStates => pastStates.filter(x => x > 1))
-```
-
-### Undo
-There are two recommended ways to create an undo action:
-1. Use the action creator
-```js
-import { undo } from 'undox'
-const undoAction = undo()
-```
-2. Use the UndoxTypes
-```js
-import { UndoxTypes } from 'undox'
-const undoAction = { type: UndoxTypes.UNDO }
-```
-
-```js
-const initialState = {
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'DECREMENT' }, { type: 'INCREMENT' } ],
-  index   : 3
-}
-
-undoxCounter(initialState, undoAction)
-
-{
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'DECREMENT' }, { type: 'INCREMENT' } ],
-  index   : 2
-}
-```
-The payload of the undo action corresponds to the number of steps to undo, it defaults to 1.
-If the payload is greater than past.length, all actions will be undone.
-
-```js
-undoxCounter(initialState, undo(100))
-
-{
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'DECREMENT' }, { type: 'INCREMENT' } ],
-  index   : 0
-}
-```
-
-### Redo
-Redo works pretty much analogous to undo:
-```js
-import { redo } from 'undox'
-
-const initialState = {
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'DECREMENT' } ],
-  index   : 1
-}
-
-undoxCounter(initialState, redo())
-
-{
-  history : [ { type: 'INIT' }, { type: 'INCREMENT' }, { type: 'DECREMENT' } ],
-  index   : 2
-}
-```
-
-### Group
-The group action is a sepcial undox action. It will group the actions given in the payload, and store them as an array inside the history. Undo will then undo them as one single step.
-```js
-import { group } from 'undox'
-const incrementTwice = group({ type: 'INCREMENT' }, { type: 'INCREMENT' })
-```
-```js
-import { UndoxTypes } from 'undox'
-const incrementTwice = { type: UndoxTypes.GROUP, payload: [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] }
-```
-
-```js
-const state1 = undoxCounter(initialState, incrementTwice)
-
-{
-  history : [ { type: 'INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
-  index   : 1
-}
-
-const state2 = undoxCounter(state1, undo(1))
-
-{
-  history : [ { type: 'INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
-  index   : 0
-}
-```
-
-## Parameters
-
-### initAction
-You may have wondered where `{ type: 'INIT' }` inside the history comes from.
-Its the initAction with which your reducer is called when it is initialized.
-
-```js
-const undoxCounter = undox(counter, { type: 'MY_CUSTOM_INIT' })
-
-{
-  history    : [ { type: 'MY_CUSTOM_INIT' } ],
-  index : 0
-}
-```
-
-### Comparator (optional)
-The third argument of `undox` is a comparator function which compares two states in order to detect state changes.
-
-- If it evaluates to true, the action history is not updated and the state is returned.
-- If it evaluates to false, the action history is updated and the new state is returned.
-- The default comparator uses strict equality `(s1, s2) => s1 === s2`.
-- To add every action to the history one would provide the comparator `(s1, s2) => false`.
-
-```js
-undox(counter, initAction, (s1, s2) => false)
-```
-
-
-
-
-

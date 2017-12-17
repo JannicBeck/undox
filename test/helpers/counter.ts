@@ -1,3 +1,8 @@
+import { Reducer } from '../../src/interfaces/public';
+
+
+type CounterState = number;
+
 enum Count {
   INCREMENT = 'INCREMENT_COUNTER',
   DECREMENT = 'DECREMENT_COUNTER',
@@ -30,7 +35,7 @@ export const init = (): Init => {
 
 export type CounterAction = Init | Increment | Decrement
 
-export const counter = (state = 0, action: CounterAction) => {
+export const counter: Reducer<CounterState, CounterAction> = (state = 0, action: CounterAction) => {
 
   switch (action.type) {
 
