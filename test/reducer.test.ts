@@ -12,7 +12,21 @@ describe('The undox.reducer', () => {
 
   describe('initial state', () => {
 
-    it('should use the initAction', () => {
+    it('should produce a default initAction', () => {
+
+      const reducer = undox(counter)
+
+      const expectedState = {
+        history : [ { type: 'undox/INIT' } ],
+        index   : 0
+      }
+
+      const actualState = reducer(undefined, {} as any)
+      expect(actualState).toEqual(expectedState)
+
+    })
+
+    it('should use the custom initAction', () => {
 
       const initAction = init()
 
