@@ -361,7 +361,7 @@ describe('The undox.reducer', () => {
         index   : 0
       }
 
-      const groupAction = group(increment(), increment())
+      const groupAction = group([ increment(), increment() ])
 
 
       const expectedState1 = {
