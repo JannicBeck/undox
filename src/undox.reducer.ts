@@ -31,8 +31,8 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
           , [ ] as S[]
         ),
 
-    getFutureStates : (state: UndoxState<S, A>): S[] =>{
-      return getFutureActions(state)
+    getFutureStates : (state: UndoxState<S, A>): S[] =>
+      getFutureActions(state)
         .reduce(
           (states, a, i) => {
             const previousState = states.length !== 0 ? states[i - 1] : getPresentState(state)
@@ -41,7 +41,7 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
               ? [ ...states, a.reduce(reducer, previousState) ]
               : [ ...states, reducer(previousState, a) ]
           }, [ ] as S[]
-        )},
+        ),
 
     getPresentState,
     getPastActions  : (state: UndoxState<S, A>): A[] => flatten(state.history.slice(0, state.index)),
