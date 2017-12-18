@@ -80,7 +80,7 @@ The selectors are the contract between this library and your code. They won't ch
 that I won't break your app when adding features to this library.
 
 #### Custom Selectors
-Of course you can create your own selectors, but make sure you use the existing ones as an input for your new ones f.e. using [reselect](https://github.com/reactjs/reselect):
+Of course you can create your own selectors, but make sure you use the existing ones as an input for your new ones e.g. using [reselect](https://github.com/reactjs/reselect):
 ```js
 createSelector(getPastStates, pastStates => pastStates.filter(x => x > 1))
 createSelector(getPastActions, getPresentAction, (pastActions, presentAction) => [...pastActions, presentAction])
