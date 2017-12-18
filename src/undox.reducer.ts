@@ -26,8 +26,8 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
         .reduce(
           (states, a, i) =>
             Array.isArray(a)
-              ? [ ...states, a.reduce(reducer, states[i]) ]
-              : [ ...states, reducer(states[i], a) ]
+              ? [ ...states, a.reduce(reducer, states[i - 1]) ]
+              : [ ...states, reducer(states[i - 1], a) ]
           , [ ] as S[]
         ),
 

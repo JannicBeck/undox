@@ -68,14 +68,14 @@ describe('The undox.selectors', () => {
 
   describe('select past states', () => {
 
-    it('should select the past states', () => {
+    fit('should select the past states', () => {
 
       const state: UndoxCounter = {
-        history : [ init(), increment(), decrement(), increment() ],
-        index   : 2
+        history : [ init(), increment(), increment(), increment(), increment(), increment() ],
+        index   : 4
       }
   
-      const expected = [ 0, 1 ]
+      const expected = [ 0, 1, 2, 3 ]
       const actual = selectors.getPastStates(state)
   
       expect(actual).toEqual(expected)
