@@ -1,7 +1,7 @@
 import 'jest';
 import { undox } from '../src/undox.reducer';
 import { UndoxState } from '../src/interfaces/public';
-import { UndoxTypes, undo, redo, group } from '../src/undox.action';
+import { UndoxTypes, undo, redo, group, UndoAction, RedoAction } from '../src/undox.action';
 import { counter, init, increment, decrement, CounterAction } from './helpers/counter';
 
 
@@ -29,13 +29,14 @@ describe('The undox.reducer', () => {
     it('should use the custom initAction', () => {
 
       const initAction = init()
+      const reducer = undox(counter, initAction)
 
       const expectedState = {
         history : [ initAction ],
         index   : 0
       }
 
-      const actualState = reducer(undefined, init())
+      const actualState = reducer(undefined, {} as any)
       expect(actualState).toEqual(expectedState)
 
     })
@@ -45,7 +46,7 @@ describe('The undox.reducer', () => {
 
   describe('forwarding actions', () => {
 
-    it('should call the given reducer', () => {
+    it('should call the given reducer on increment action', () => {
 
       const initialState = undefined
 
@@ -61,7 +62,7 @@ describe('The undox.reducer', () => {
 
     })
 
-    it('should call the given reducer', () => {
+    it('should call the given reducer on decrement action', () => {
 
       const initialState = undefined
       const decrementAction = decrement()
@@ -83,12 +84,14 @@ describe('The undox.reducer', () => {
         index   : 1
       }
 
+      const decrementAction = decrement()
+
       const expectedState = {
         history : [ init(), increment(), decrement() ],
         index   : 2
       }
 
-      const actualState = reducer(initialState, decrement())
+      const actualState = reducer(initialState, decrementAction)
       expect(actualState).toEqual(expectedState)
 
     })
@@ -115,6 +118,26 @@ describe('The undox.reducer', () => {
 
       const actualState = reducer(initialState, undoAction)
       expect(actualState).toEqual(expectedState)
+
+    })
+
+    it('should undo to the previous state if no payload is provided', () => {
+
+      const initialState = {
+        history : [ init(), increment(), increment() ],
+        index   : 2
+      }
+
+      const undoAction: UndoAction = { type: UndoxTypes.UNDO }
+
+      const expectedState = {
+        history : [ init(), increment(), increment() ],
+        index   : 1
+      }
+
+      const actualState = reducer(initialState, undoAction)
+      expect(actualState).toEqual(expectedState)
+
     })
 
   }) // ==== undo ====
@@ -174,14 +197,33 @@ describe('The undox.reducer', () => {
         index   : 1
       }
 
-      const action = redo()
+      const redoAction = redo()
 
       const expectedState = {
         history : [ init(), increment(), decrement(), increment() ],
         index   : 2
       }
 
-      const actualState = reducer(initialState, action)
+      const actualState = reducer(initialState, redoAction)
+      expect(actualState).toEqual(expectedState)
+
+    })
+
+    it('should redo to the future state if no payload is provided', () => {
+
+      const initialState = {
+        history : [ init(), increment(), decrement(), increment() ],
+        index   : 1
+      }
+
+      const redoAction: RedoAction = { type: UndoxTypes.REDO }
+
+      const expectedState = {
+        history : [ init(), increment(), decrement(), increment() ],
+        index   : 2
+      }
+
+      const actualState = reducer(initialState, redoAction)
       expect(actualState).toEqual(expectedState)
 
     })
