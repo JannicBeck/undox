@@ -6314,9 +6314,9 @@ uid-number@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/uid-number/-/uid-number-0.0.6.tgz#0ea10e8035e8eb5b8e4449f06da1c730663baa81"
 
-undox@^1.2.3:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/undox/-/undox-1.2.3.tgz#856ad4772a69599139230b260c2ad86854843e02"
+undox@^1.2.5:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/undox/-/undox-1.2.5.tgz#e8b71af52eb95db1fdc3336636370d549bbed6b1"
 
 uniq@^1.0.1:
   version "1.0.1"
