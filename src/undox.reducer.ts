@@ -59,14 +59,9 @@ const doNFutureStatesExit : DoNStatesExist = ({ history, index }, nStates) => hi
 const group: Group = (state, action, reducer, comparator) => {
 
   const presentState = createGetPresentState(reducer)(state)
+  const nextState    = action.payload.reduce(reducer, presentState)
 
-  if (
-    comparator(
-      presentState,
-      flatten(action.payload)
-        .reduce(reducer, presentState)
-    )
-  ) {
+  if (comparator(presentState, nextState)) {
     return state
   }
 
@@ -100,8 +95,9 @@ const redo: Redo = (state, { payload = 1 }) => {
 const delegate: Delegate = (state, action, reducer, comparator) => {
 
   const presentState = createGetPresentState(reducer)(state)
+  const nextState    = reducer(presentState, action)
 
-  if (comparator(presentState, reducer(presentState, action))) {
+  if (comparator(presentState, nextState)) {
     return state
   }
 
