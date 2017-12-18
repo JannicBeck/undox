@@ -13,7 +13,7 @@
     "react-dom": "^15.5.0",
     "react-redux": "^5.0.5",
     "redux": "^3.5.2",
-    "undox": "^1.2.3"
+    "undox": "^1.2.4"
   },
   "scripts": {
     "start": "react-scripts start",

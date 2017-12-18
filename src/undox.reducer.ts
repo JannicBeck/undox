@@ -31,16 +31,17 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
           , [ ] as S[]
         ),
 
-    getFutureStates : (state: UndoxState<S, A>): S[] =>
-      getFutureActions(state)
+    getFutureStates : (state: UndoxState<S, A>): S[] =>{
+      return getFutureActions(state)
         .reduce(
           (states, a, i) => {
-            const previousState = states[i - 1] ? states[i - 1] : getPresentState(state)
+            const previousState = states[i - 1] !== undefined ? states[i - 1] : getPresentState(state)
+
             return Array.isArray(a)
               ? [ ...states, a.reduce(reducer, previousState) ]
               : [ ...states, reducer(previousState, a) ]
           }, [ ] as S[]
-        ),
+        )},
 
     getPresentState,
     getPastActions  : (state: UndoxState<S, A>): A[] => flatten(state.history.slice(0, state.index)),
