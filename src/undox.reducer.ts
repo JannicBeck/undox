@@ -35,7 +35,7 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
       return getFutureActions(state)
         .reduce(
           (states, a, i) => {
-            const previousState = states[i - 1] !== undefined ? states[i - 1] : getPresentState(state)
+            const previousState = states.length !== 0 ? states[i - 1] : getPresentState(state)
 
             return Array.isArray(a)
               ? [ ...states, a.reduce(reducer, previousState) ]
