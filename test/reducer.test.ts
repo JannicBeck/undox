@@ -16,10 +16,12 @@ describe('The undox.reducer', () => {
 
       const reducer = undox(counter)
 
-      const expectedState = {
-        history : [ { type: 'undox/INIT' } ],
+      const expectedState: UndoxCounter = {
+        history : [ { type: 'undox/INIT' } as any ],
         index   : 0
       }
+
+      expectedState.index = 0
 
       const actualState = reducer(undefined, {} as any)
       expect(actualState).toEqual(expectedState)
@@ -31,7 +33,7 @@ describe('The undox.reducer', () => {
       const initAction = init()
       const reducer = undox(counter, initAction)
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ initAction ],
         index   : 0
       }
@@ -48,11 +50,11 @@ describe('The undox.reducer', () => {
 
     it('should call the given reducer on increment action', () => {
 
-      const initialState = undefined
+      const initialState: UndoxCounter = undefined
 
       const incrementAction = increment()
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), incrementAction ],
         index   : 1
       }
@@ -67,7 +69,7 @@ describe('The undox.reducer', () => {
       const initialState = undefined
       const decrementAction = decrement()
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), decrementAction ],
         index   : 1
       }
@@ -86,7 +88,7 @@ describe('The undox.reducer', () => {
 
       const decrementAction = decrement()
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), decrement() ],
         index   : 2
       }
@@ -111,7 +113,7 @@ describe('The undox.reducer', () => {
 
       const undoAction = undo()
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), increment() ],
         index   : 1
       }
@@ -130,7 +132,7 @@ describe('The undox.reducer', () => {
 
       const undoAction: UndoAction = { type: UndoxTypes.UNDO }
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), increment() ],
         index   : 1
       }
@@ -155,7 +157,7 @@ describe('The undox.reducer', () => {
 
       const undoAction = undo(2)
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), increment() ],
         index   : 0
       }
@@ -174,7 +176,7 @@ describe('The undox.reducer', () => {
 
       const undoAction = undo(100)
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 0
       }
@@ -199,7 +201,7 @@ describe('The undox.reducer', () => {
 
       const redoAction = redo()
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), decrement(), increment() ],
         index   : 2
       }
@@ -218,7 +220,7 @@ describe('The undox.reducer', () => {
 
       const redoAction: RedoAction = { type: UndoxTypes.REDO }
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), decrement(), increment() ],
         index   : 2
       }
@@ -243,7 +245,7 @@ describe('The undox.reducer', () => {
 
       const action = redo(2)
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), increment() ],
         index   : 2
       }
@@ -261,7 +263,7 @@ describe('The undox.reducer', () => {
 
       const redoAction = redo(100)
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 3
       }
@@ -285,7 +287,7 @@ describe('The undox.reducer', () => {
       }
 
 
-      const expectedState1 = {
+      const expectedState1: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 2
       }
@@ -293,7 +295,7 @@ describe('The undox.reducer', () => {
       expect(actualState1).toEqual(expectedState1)
 
 
-      const expectedState2 = {
+      const expectedState2: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 1
       }
@@ -301,7 +303,7 @@ describe('The undox.reducer', () => {
       expect(actualState2).toEqual(expectedState2)
 
 
-      const expectedState3 = {
+      const expectedState3: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 0
       }
@@ -309,7 +311,7 @@ describe('The undox.reducer', () => {
       expect(actualState3).toEqual(expectedState3)
 
 
-      const expectedState4 ={
+      const expectedState4: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 0 // nothing to undo
       }
@@ -332,7 +334,7 @@ describe('The undox.reducer', () => {
       }
 
 
-      const expectedState1 = {
+      const expectedState1: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 1
       }
@@ -340,7 +342,7 @@ describe('The undox.reducer', () => {
       expect(actualState1).toEqual(expectedState1)
 
 
-      const expectedState2 = {
+      const expectedState2: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 2
       }
@@ -348,7 +350,7 @@ describe('The undox.reducer', () => {
       expect(actualState2).toEqual(expectedState2)
 
 
-      const expectedState3 = {
+      const expectedState3: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 3
       }
@@ -356,7 +358,7 @@ describe('The undox.reducer', () => {
       expect(actualState3).toEqual(expectedState3)
 
 
-      const expectedState4 = {
+      const expectedState4: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 3 // nothing to redo
       }
@@ -373,13 +375,13 @@ describe('The undox.reducer', () => {
 
     it('should undo and redo a sequence of states to a correct state', () => {
 
-      const initialState = {
+      const initialState: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 0
       }
 
 
-      const expectedState1 = {
+      const expectedState1: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 1
       }
@@ -387,7 +389,7 @@ describe('The undox.reducer', () => {
       expect(actualState1).toEqual(expectedState1)
 
 
-      const expectedState2 = {
+      const expectedState2: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 2
       }
@@ -395,7 +397,7 @@ describe('The undox.reducer', () => {
       expect(actualState2).toEqual(expectedState2)
 
 
-      const actualState3 = reducer(actualState2, undo())
+      const actualState3: UndoxCounter = reducer(actualState2, undo())
       expect(actualState3).toEqual(actualState1)
 
 
@@ -412,7 +414,7 @@ describe('The undox.reducer', () => {
 
     it('should undo grouped actions', () => {
 
-      const initialState = {
+      const initialState: UndoxCounter = {
         history : [ init() ],
         index   : 0
       }
@@ -420,7 +422,7 @@ describe('The undox.reducer', () => {
       const groupAction = group([ increment(), increment() ])
 
 
-      const expectedState1 = {
+      const expectedState1: UndoxCounter = {
         history : [ init(), [ increment(), increment() ] ],
         index   : 1
       }
@@ -428,7 +430,7 @@ describe('The undox.reducer', () => {
       expect(actualState1).toEqual(expectedState1)
 
 
-      const expectedState2 = {
+      const expectedState2: UndoxCounter = {
         history : [ init(), [ increment(), increment() ] ],
         index   : 0
       }
@@ -439,14 +441,14 @@ describe('The undox.reducer', () => {
 
     it('should redo grouped actions', () => {
 
-      const initialState = {
+      const initialState: UndoxCounter = {
         history    : [ init(), [ increment(), increment(), decrement() ] ],
         index : 0
       }
 
       const action = redo()
 
-      const expectedState = {
+      const expectedState: UndoxCounter = {
         history : [ init(), [ increment(), increment(), decrement() ] ],
         index   : 1
       }
