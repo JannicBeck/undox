@@ -17,7 +17,8 @@
     "build": "tsc index.ts --module commonjs --outDir dist",
     "test": "jest",
     "test:watch": "npm test -- --watch",
-    "test:cov": "npm test -- --coverage"
+    "test:cov": "npm test -- --coverage",
+    "prepublish": "npm run clean && npm run build"
   },
   "keywords": [
     "redux",
