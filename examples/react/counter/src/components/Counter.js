@@ -8,13 +8,12 @@ class Counter extends Component {
     const { value, onIncrement, onDecrement, onUndo, onRedo } = this.props
 
     const presentState = selectors.getPresentState(value)
-    const pastStates = selectors.getPastStates(value).map(s => <li>{s}</li>)
-    const futureStates = selectors.getFutureStates(value).map(s => <li>{s}</li>)
+    const pastStates = selectors.getPastStates(value).map((s, i) => <li key={i}>{s}</li>)
+    const futureStates = selectors.getFutureStates(value).map((s, i) => <li key={i}>{s}</li>)
 
     const presentAction = selectors.getPresentAction(value)
-    const pastActions = selectors.getPastActions(value).map(a => <li>{a.type}</li>)
-    const futureActions = selectors.getFutureActions(value).map(a => <li>{a.type}</li>)
-
+    const pastActions = selectors.getPastActions(value).map((a, i) => <li key={i}>{a.type}</li>)
+    const futureActions = selectors.getFutureActions(value).map((a, i) => <li key={i}>{a.type}</li>)
 
     return (
       <div style={{display: 'flex', justifyContent: 'space-around' }}>
