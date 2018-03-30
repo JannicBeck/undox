@@ -21,6 +21,7 @@ yarn add undox --save
 import { undox, createSelectors, UndoxTypes } from 'undox'
 
 // the reducer which we want to add undo/redo functionality to
+// it has to be a pure function without side effects!
 const counter = (state = 0, action) => {
   switch (action.type) {
     case 'INCREMENT':
