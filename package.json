@@ -10,7 +10,8 @@
   "license": "MIT",
   "files": [
     "dist",
-    "src"
+    "src",
+    "index.ts"
   ],
   "scripts": {
     "clean": "rimraf dist coverage dist",
@@ -18,7 +19,7 @@
     "test": "jest",
     "test:watch": "npm test -- --watch",
     "test:cov": "npm test -- --coverage",
-    "prepublish": "npm run clean && npm run build"
+    "prepare": "npm run clean && npm run build"
   },
   "keywords": [
     "redux",
