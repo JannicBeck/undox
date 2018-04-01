@@ -37,6 +37,7 @@ export interface Reducer<S =  any, A extends Action = Action> {
 export interface UndoxState<S, A extends Action> {
   history : ReadonlyArray<(A | A[])>
   index   : Readonly<number>
+  present : Readonly<S>
 }
 
 /**

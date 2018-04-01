@@ -13,15 +13,15 @@ export interface DoNStatesExist {
 }
 
 export interface CalculateState {
-  <S, A extends Action>(reducer: Reducer<S, A>, actions: (A | A[])[]): S
+  <S, A extends Action>(reducer: Reducer<S, A>, actions: (A | A[])[], state?: S): S
 }
 
 export interface Undo {
-  <S, A extends Action>(state: UndoxState<S, A>, action: UndoAction): UndoxState<S, A>
+  <S, A extends Action>(reducer: Reducer<S, A>, state: UndoxState<S, A>, action: UndoAction): UndoxState<S, A>
 }
 
 export interface Redo {
-  <S, A extends Action>(state: UndoxState<S, A>, action: RedoAction): UndoxState<S, A>
+  <S, A extends Action>(reducer: Reducer<S, A>, state: UndoxState<S, A>, action: RedoAction): UndoxState<S, A>
 }
 
 export interface Group {

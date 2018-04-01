@@ -12,7 +12,8 @@ describe('comparator', () => {
 
     const initialState: UndoxCounter = {
       history : [ init(), increment() ],
-      index   : 1
+      index   : 1,
+      present : 1
     }
 
     // init will not change state
@@ -31,7 +32,8 @@ describe('comparator', () => {
 
     const initialState: UndoxCounter = {
       history : [ init() ],
-      index   : 0
+      index   : 0,
+      present : 0
     }
 
     const action = increment()
@@ -49,14 +51,16 @@ describe('comparator', () => {
 
     const initialState: UndoxCounter = {
       history : [ init() ],
-      index   : 0
+      index   : 0,
+      present : 0
     }
 
     const action = init()
 
     const expectedState: UndoxCounter = {
       history : [ init(), init() ],
-      index   : 1
+      index   : 1,
+      present : 0
     }
 
     const actualState = reducerWithComparator(initialState, action)

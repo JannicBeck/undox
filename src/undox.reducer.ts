@@ -1,28 +1,47 @@
-import { UndoxTypes, GroupAction, RedoAction, UndoAction, UndoxAction } from './undox.action';
-import { Group, Undo, Redo, Delegate, CalculateState, DoNStatesExist } from './interfaces/internal';
-import { Action, Reducer, Comparator, UndoxState } from './interfaces/public';
+import {
+  Group,
+  Undo,
+  Redo,
+  Delegate,
+  CalculateState,
+  DoNStatesExist
+} from './interfaces/internal';
+
+import {
+  Action,
+  Reducer,
+  Comparator,
+  UndoxState
+} from './interfaces/public';
+
+import {
+  UndoxTypes,
+  GroupAction,
+  RedoAction,
+  UndoAction,
+  UndoxAction
+} from './undox.action';
+
 
 // helper used to flatten the history if grouped actions are in it
 const flatten = <T> (x: (T | T[])[]) => [].concat(...x) as T[]
 
 // actions can be an array of arrays because of grouped actions, so we flatten it first
-const calculateState: CalculateState = (reducer, actions) => flatten(actions).reduce(reducer, undefined)
+const calculateState: CalculateState = (reducer, actions, state) => flatten(actions).reduce(reducer, state)
 
 const getFutureActions = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(state.index + 1)
 
-const getPastActions = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(0, state.index + 1)
+const getPastActionsWithPresent = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(0, state.index + 1)
 
-const createGetPresentState = <S, A extends Action>(reducer: Reducer<S, A>) =>
-  (state: UndoxState<S, A>) => calculateState(reducer, getPastActions(state))
+const getPastActions = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(0, state.index)
 
+const getPresentState = <S, A extends Action>(state: UndoxState<S, A>) => state.present
 
 export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => {
 
-  const getPresentState = createGetPresentState(reducer)
-
   return {
     getPastStates : (state: UndoxState<S, A>): S[] =>
-      state.history.slice(0, state.index)
+      getPastActions(state) 
         .reduce(
           (states, a, i) =>
             Array.isArray(a)
@@ -38,11 +57,11 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
             Array.isArray(a)
               ? [ ...states, a.reduce(reducer, states[i]) ]
               : [ ...states, reducer(states[i], a) ]
-          , [ getPresentState(state) ] as S[]
+          , [ getPresentState(state) ]
         ).slice(1),
 
     getPresentState,
-    getPastActions : (state: UndoxState<S, A>): A[] => flatten(state.history.slice(0, state.index)),
+    getPastActions : (state: UndoxState<S, A>): A[] => flatten(getPastActions(state)),
     getPresentAction : (state: UndoxState<S, A>): A | A[] => state.history[state.index],
     getFutureActions : (state: UndoxState<S, A>): A[] => flatten(getFutureActions(state))
   }
@@ -50,41 +69,52 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
 }
 
 
-const doNPastStatesExit   : DoNStatesExist = ({ history, index }, nStates) => index >= nStates
-const doNFutureStatesExit : DoNStatesExist = ({ history, index }, nStates) => history.length - 1 - index >= nStates
+const doNPastStatesExist   : DoNStatesExist = ({ history, index }, nStates) => index >= nStates
+const doNFutureStatesExist : DoNStatesExist = ({ history, index }, nStates) => history.length - 1 - index >= nStates
 
 
 const group: Group = (state, action, reducer, comparator) => {
 
-  const presentState = createGetPresentState(reducer)(state)
-  const nextState    = action.payload.reduce(reducer, presentState)
+  const presentState = getPresentState(state)
+  const nextState = action.payload.reduce(reducer, state.present)
 
-  if (comparator(presentState, nextState)) {
+  if (comparator(presentState, nextState))
     return state
-  }
 
   return {
-    history : [ ...getPastActions(state), action.payload ],
+    history : [ ...getPastActionsWithPresent(state), action.payload ],
     index   : state.index + 1,
+    present : nextState
   }
 
 }
 
 
-const undo: Undo = (state, { payload = 1 }) => {
+const undo: Undo = (reducer, state, { payload = 1 }) => {
+
+  const nPastStatesExist = doNPastStatesExist(state, payload)
+  const index = nPastStatesExist ? state.index - payload : 0
+
+  const newState = {
+    ...state,
+    index
+  }
 
   return {
-    ...state,
-    index : doNPastStatesExit(state, payload) ? state.index - payload : 0
+    ...newState,
+    present : calculateState(reducer, getPastActionsWithPresent(newState))
   }
 
 }
 
-const redo: Redo = (state, { payload = 1 }) => {
+const redo: Redo = (reducer, state, { payload = 1 }) => {
+
+  const latestFuture = state.history[state.index + 1]
 
   return {
     ...state,
-    index : doNFutureStatesExit(state, payload) ? state.index + payload : state.history.length - 1
+    index   :doNFutureStatesExist(state, payload) ? state.index + payload : state.history.length - 1, 
+    present : calculateState(reducer, [ latestFuture ], getPresentState(state))
   }
 
 }
@@ -92,16 +122,15 @@ const redo: Redo = (state, { payload = 1 }) => {
 
 const delegate: Delegate = (state, action, reducer, comparator) => {
 
-  const presentState = createGetPresentState(reducer)(state)
-  const nextState    = reducer(presentState, action)
+  const nextPresent = reducer(state.present, action)
 
-  if (comparator(presentState, nextState)) {
+  if (comparator(state.present, nextPresent))
     return state
-  }
 
   return {
-    history : [ ...getPastActions(state), action ],
+    history : [ ...getPastActionsWithPresent(state), action ],
     index   : state.index + 1,
+    present : nextPresent
   }
 
 }
@@ -115,6 +144,7 @@ export const undox = <S, A extends Action>(
 
   const initialState: UndoxState<S, A> = {
     history : [ initAction ],
+    present : reducer(undefined, initAction),
     index   : 0
   }
 
@@ -123,10 +153,10 @@ export const undox = <S, A extends Action>(
     switch (action.type) {
 
       case UndoxTypes.UNDO:
-        return undo(state, action as UndoAction)
+        return undo(reducer, state, action as UndoAction)
 
       case UndoxTypes.REDO:
-        return redo(state, action as RedoAction)
+        return redo(reducer, state, action as RedoAction)
 
       case UndoxTypes.GROUP:
         return group(state, action as GroupAction<A>, reducer, comparator)
