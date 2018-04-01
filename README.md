@@ -54,7 +54,7 @@ selectors.getPresentState(state4) // 2
 const state5 = reducer(state4, { type: UndoxTypes.UNDO })
 selectors.getPresentState(state5) // 1
 
-state5 // { history: [ { type: 'undox/INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1 }
+state5 // { history: [ { type: 'undox/INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1, present: 1 }
 
 selectors.getPresentAction(state5) // { type: 'INCREMENT' }
 selectors.getPastStates(state5)    // [ 0 ]
@@ -111,7 +111,8 @@ If the payload is greater than (past/future).length, all actions will be undone/
 ```js
 const state = {
   history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
-  index   : 3
+  index   : 3,
+  present : 3
 }
 
 const state2 = reducer(state, undo(100))
@@ -119,13 +120,15 @@ const state2 = reducer(state, undo(100))
 {
   history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
   index   : 0
+  present : 0
 }
 
 reducer(state, redo(100))
 
 {
   history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
-  index   : 3
+  index   : 3,
+  present : 3
 }
 
 ```
@@ -146,14 +149,16 @@ const state1 = reducer(initialState, incrementTwice)
 
 {
   history : [ { type: 'undox/INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
-  index   : 1
+  index   : 1,
+  present : 2
 }
 
 const state2 = reducer(state1, undo(1))
 
 {
   history : [ { type: 'undox/INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
-  index   : 0
+  index   : 0,
+  present : 0
 }
 ```
 
@@ -168,7 +173,8 @@ const reducer = undox(counter, { type: 'MY_CUSTOM_INIT' })
 
 {
   history : [ { type: 'MY_CUSTOM_INIT' } ],
-  index   : 0
+  index   : 0,
+  present : 0
 }
 ```
 
