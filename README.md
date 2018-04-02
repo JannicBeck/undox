@@ -20,7 +20,7 @@ yarn add undox --save
 ```js
 import { undox, createSelectors, UndoxTypes } from 'undox'
 
-// the reducer which we want to add undo/redo functionality to
+// the which we want to add undo/redo functionality to
 // it has to be a pure function without side effects!
 const counter = (state = 0, action) => {
   switch (action.type) {
@@ -39,34 +39,42 @@ const reducer = undox(counter)
 // get the selectors to query the new state
 const selectors = createSelectors(counter)
 
-const state1 = reducer(undefined, { type: 'INCREMENT' })
-selectors.getPresentState(state1) // 1
+store.dispatch({ type: 'INCREMENT' })
+selectors.getPresentState(state) // 1
 
-const state2 = reducer(state1, { type: 'INCREMENT' })
-selectors.getPresentState(state2) // 2
+store.dispatch({ type: 'INCREMENT' })
+selectors.getPresentState(state) // 2
 
-const state3 = reducer(state2, { type: UndoxTypes.UNDO })
-selectors.getPresentState(state3) // 1
+store.dispatch({ type: UndoxTypes.UNDO })
+selectors.getPresentState(state) // 1
 
-const state4 = reducer(state3, { type: UndoxTypes.REDO })
-selectors.getPresentState(state4) // 2
+store.dispatch({ type: UndoxTypes.REDO })
+selectors.getPresentState(state) // 2
 
-const state5 = reducer(state4, { type: UndoxTypes.UNDO })
-selectors.getPresentState(state5) // 1
+import { undo } from 'undox'
 
-state5 // { history: [ { type: 'undox/INIT' }, type: 'INCREMENT', type: 'INCREMENT' ], index: 1, present: 1 }
+store.dispatch(undo())
+selectors.getPresentState(sate) // 1
 
-selectors.getPresentAction(state5) // { type: 'INCREMENT' }
-selectors.getPastStates(state5)    // [ 0 ]
-selectors.getPastActions(state5)   // [ { type: 'undox/INIT' } ]
-selectors.getFutureStates(state5)  // [ 2 ]
-selectors.getFutureActions(state5) // { type: 'INCREMENT' }
+// your state now looks like this
+state: {
+  history: [ { type: 'undox/INIT' }, type: 'INCREMENT', type: 'INCREMENT' ],
+  index: 1, present: 1
+}
 
-const state6 = reducer(state5, { type: UndoxTypes.GROUP, payload: [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] })
-selectors.getPresentState(state6) // 3
+selectors.getPresentAction(state) // { type: 'INCREMENT' }
+selectors.getPastStates(state)    // [ 0 ]
+selectors.getPastActions(state)   // [ { type: 'undox/INIT' } ]
+selectors.getFutureStates(state)  // [ 2 ]
+selectors.getFutureActions(state) // { type: 'INCREMENT' }
 
-const state7 = reducer(state6, { type: UndoxTypes.UNDO })
-selectors.getPresentState(state7) // 1
+// increment twice with one action by grouping
+store.disptach({ type: UndoxTypes.GROUP, payload: [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] })
+selectors.getPresentState(state) // 3
+
+// grouped actions will be undone in one step
+store.disptach(undo())
+selectors.getPresentState(state) // 1
 
 ```
 
@@ -109,13 +117,14 @@ The payload of the undo/redo action corresponds to the number of steps to undo/r
 If the payload is greater than (past/future).length, all actions will be undone/redone.
 
 ```js
-const state = {
+state: {
   history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
   index   : 3,
   present : 3
 }
 
-const state2 = reducer(state, undo(100))
+// if the argument/payload for undo is greater than the past it will just undo all
+store.dispatch(undo(100))
 
 {
   history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
@@ -123,7 +132,8 @@ const state2 = reducer(state, undo(100))
   present : 0
 }
 
-reducer(state, redo(100))
+// same with redo
+store.dispatch(redo(100))
 
 {
   history : [ { type: 'undox/INIT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' }, { type: 'INCREMENT' } ],
@@ -138,14 +148,8 @@ The group action is a sepcial undox action. It will group the actions given in t
 ```js
 import { group } from 'undox'
 const incrementTwice = group({ type: 'INCREMENT' }, { type: 'INCREMENT' })
-```
-```js
-import { UndoxTypes } from 'undox'
-const incrementTwice = { type: UndoxTypes.GROUP, payload: [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] }
-```
 
-```js
-const state1 = reducer(initialState, incrementTwice)
+store.dispatch(incrementTwice)
 
 {
   history : [ { type: 'undox/INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
@@ -153,7 +157,7 @@ const state1 = reducer(initialState, incrementTwice)
   present : 2
 }
 
-const state2 = reducer(state1, undo(1))
+store.dispatch(undo(1))
 
 {
   history : [ { type: 'undox/INIT' }, [ { type: 'INCREMENT' }, { type: 'INCREMENT' } ] ],
@@ -199,7 +203,7 @@ It really just boils down to if your state is fat and your actions are thin or y
 
 The most popular and used library to add undo/redo functionality to redux is without a doubt [redux-undo](https://github.com/omnidan/redux-undo).
 
-It stores the whole state instead of actions. While this is great if we got a lean state and fat actions, it does not scale well if our state tree grows.
+It stores the whole state instead of actions. While this is great if we got a lean state and fat actions, it does not scale well if our state tree grows and especially if we want to persist our state.
 
 My use case:
 - I have a big state and very lean actions, since I synchronize clients by sending actions over websockets.
@@ -210,10 +214,10 @@ My use case:
 
 Why redux-undo didn't fit my use case:
 - With over 500 actions the corresponding 500 states stored inside localStorage would take up way too much space.
-- The App slowed down significantly after 50+ actions.
+- My App slowed down significantly after 50+ actions because the states are rehydrated from localStorage and therefore do not share any memory.
 - I couldn't reproduce the actions from the states (we can always reproduce the states from the actions but it doesn't work the other way around aka what action triggered that state change)
 
-This library instead only stores actions, which results in some nice advantages, but also some disadvantages depending on your use case.
+This library instead only stores actions, which results in some nice advantages, but also some disadvantages, depending on your use case.
 
 ### Advantages
 - Takes up less space inside localStorage for thin actions and fat states
