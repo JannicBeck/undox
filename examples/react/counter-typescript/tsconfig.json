@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "es2015",
-    "jsx": "react-native",
+    "jsx": "react",
     "moduleResolution": "node",
     "baseUrl": ".",
     "allowSyntheticDefaultImports": true,

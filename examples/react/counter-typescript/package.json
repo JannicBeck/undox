@@ -7,7 +7,7 @@
     "@types/react-dom": "^16.0.5",
     "@types/react-redux": "^5.0.16",
     "enzyme": "^2.8.2",
-    "react-scripts": "^1.0.2",
+    "react-scripts-ts": "2.15.1",
     "react-test-renderer": "^15.6.1",
     "typescript": "^2.8.1"
   },
@@ -20,9 +20,9 @@
     "undox": "^1.2.6"
   },
   "scripts": {
-    "start": "tsc; tsc -w & react-scripts start",
-    "build": "tsc && react-scripts build",
-    "eject": "react-scripts eject",
-    "test": "react-scripts test"
+    "start": "react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "eject": "react-scripts-ts eject",
+    "test": "react-scripts-ts test"
   }
 }
