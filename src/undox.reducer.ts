@@ -113,7 +113,7 @@ const redo: Redo = (reducer, state, { payload = 1 }) => {
 
   return {
     ...state,
-    index   :doNFutureStatesExist(state, payload) ? state.index + payload : state.history.length - 1, 
+    index   : doNFutureStatesExist(state, payload) ? state.index + payload : state.history.length - 1, 
     present : calculateState(reducer, [ latestFuture ], getPresentState(state))
   }
 
