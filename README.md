@@ -54,7 +54,7 @@ selectors.getPresentState(state) // 2
 import { undo } from 'undox'
 
 store.dispatch(undo())
-selectors.getPresentState(sate) // 1
+selectors.getPresentState(state) // 1
 
 // your state now looks like this
 state: {
