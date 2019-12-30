@@ -204,7 +204,7 @@ describe('The undox.reducer', () => {
 
 
 
-  fdescribe('redo', () => {
+  describe('redo', () => {
 
     it('should redo to the future state', () => {
 
@@ -374,7 +374,7 @@ describe('The undox.reducer', () => {
       const expectedState2: UndoxCounter = {
         history : [ init(), increment(), increment(), increment() ],
         index   : 2,
-        present : 1
+        present : 2
       }
       const actualState2 = reducer(actualState1, redo())
       expect(actualState2).toEqual(expectedState2)
