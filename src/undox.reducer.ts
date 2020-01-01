@@ -109,12 +109,12 @@ const undo: Undo = (reducer, state, { payload = 1 }) => {
 
 const redo: Redo = (reducer, state, { payload = 1 }) => {
 
-  const latestFuture = state.history[state.index + 1]
+  const latestFuture = state.history.slice(state.index + 1, state.index + 1 + payload)
 
   return {
     ...state,
     index   : doNFutureStatesExist(state, payload) ? state.index + payload : state.history.length - 1, 
-    present : calculateState(reducer, [ latestFuture ], getPresentState(state))
+    present : calculateState(reducer, latestFuture, getPresentState(state))
   }
 
 }
