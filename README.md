@@ -1,6 +1,6 @@
 # <img src='https://github.com/JannicBeck/undox/blob/master/logo/logo.png?raw=true' height='30'> Undox
 
-Redux/Ngrx implementation of Undo/Redo based on an action history
+Redux implementation of Undo/Redo based on storing actions instead of states.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/JannicBeck/undox/blob/master/LICENSE)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue.svg)](https://www.typescriptlang.org/)
