@@ -20,7 +20,7 @@ yarn add undox --save
 ```js
 import { undox, createSelectors, UndoxTypes } from 'undox'
 
-// the which we want to add undo/redo functionality to
+// the reducer which we want to add undo/redo functionality to
 // it has to be a pure function without side effects!
 const counter = (state = 0, action) => {
   switch (action.type) {
@@ -59,7 +59,8 @@ selectors.getPresentState(state) // 1
 // your state now looks like this
 state: {
   history: [ { type: 'undox/INIT' }, type: 'INCREMENT', type: 'INCREMENT' ],
-  index: 1, present: 1
+  index: 1,
+  present: 1
 }
 
 selectors.getPresentAction(state) // { type: 'INCREMENT' }
@@ -123,7 +124,7 @@ state: {
   present : 3
 }
 
-// if the argument/payload for undo is greater than the past it will just undo all
+// if the argument/payload for undo is greater than the past it will just undo all actions
 store.dispatch(undo(100))
 
 {
