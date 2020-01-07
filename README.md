@@ -6,7 +6,6 @@ Redux implementation of Undo/Redo based on storing actions instead of states.
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-Typescript-blue.svg)](https://www.typescriptlang.org/)
 
 ## Install
-### npm
 ```
 npm install undox --save
 yarn add undox --save
