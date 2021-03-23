@@ -1,10 +1,3 @@
-import {
-  UndoxAction,
-  RedoAction,
-  UndoAction
-} from '../undox.action'
-
-
 /**
  * A simple Redux Action
  */
@@ -38,6 +31,7 @@ export interface UndoxState<S, A extends Action> {
   history : ReadonlyArray<(A | A[])>
   index   : Readonly<number>
   present : Readonly<S>
+  initial : Readonly<S>
 }
 
 /**
@@ -52,3 +46,13 @@ export interface UndoxState<S, A extends Action> {
  * 
  */
 export type Comparator<S> = (s1: S, s2: S) => boolean
+
+
+/**
+ * The limit of actions that are undoable/redoable in the past/future.
+ * Set to Infinity if no limit on one is desired.
+ */
+export interface Limit {
+  past   : number
+  future : number
+}

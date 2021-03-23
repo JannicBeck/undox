@@ -1,12 +1,11 @@
 import 'jest'
 import { counter, CounterAction, init, increment, decrement } from './helpers/counter';
-import { undox, createSelectors } from '../src/undox.reducer';
+import { createSelectors } from '../src/undox.reducer';
 import { UndoxState } from '../src/interfaces/public';
 
 
 describe('The undox.selectors', () => {
 
-  const reducer = undox(counter, init())
   const selectors = createSelectors(counter)
   type UndoxCounter = UndoxState<number, CounterAction>
   
@@ -17,7 +16,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), increment() ],
         index   : 2,
-        present : 2
+        present : 2,
+        initial : 0
       }
 
       const actual = selectors.getPresentState(state)
@@ -31,7 +31,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), increment() ],
         index   : 1,
-        present : 1
+        present : 1,
+        initial :0
       }
 
       const actual = selectors.getPresentState(state)
@@ -45,7 +46,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), increment() ],
         index   : 0,
-        present : 0
+        present : 0,
+        initial : 0
       }
 
       const actual = selectors.getPresentState(state)
@@ -59,7 +61,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), [ increment(), increment() ] ],
         index   : 1,
-        present : 2
+        present : 2,
+        initial : 0
       }
 
       const actual = selectors.getPresentState(state)
@@ -77,7 +80,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), increment(), increment(), increment(), increment() ],
         index   : 4,
-        present : 4
+        present : 4,
+        initial : 0
       }
   
       const expected = [ 0, 1, 2, 3 ]
@@ -92,10 +96,11 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init() ],
         index   : 0,
-        present : 0
+        present : 0,
+        initial : 0
       }
   
-      const expected = [ ]
+      const expected: CounterAction[] = [ ]
       const actual = selectors.getPastStates(state)
   
       expect(actual).toEqual(expected)
@@ -107,7 +112,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), [ increment(), increment() ], increment() ],
         index   : 2,
-        present : 3
+        present : 3,
+        initial : 0
       }
   
       const expected = [ 0, 2 ]
@@ -126,7 +132,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), decrement() ],
         index   : 2,
-        present : 1
+        present : 1,
+        initial : 0
       }
     
       const expected = [ init(), increment() ]
@@ -141,10 +148,11 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init() ],
         index   : 0,
-        present : 0
+        present : 0,
+        initial : 0
       }
     
-      const expected = [ ]
+      const expected: CounterAction[] = [ ]
       const actual = selectors.getPastActions(state)
     
       expect(actual).toEqual(expected)
@@ -156,7 +164,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), [ increment(), increment() ], decrement() ],
         index   : 2,
-        present : 1
+        present : 1,
+        initial : 0
       }
     
       const expected = [ init(), increment(), increment() ]
@@ -171,7 +180,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), decrement(), increment() ],
         index   : 2,
-        present : 1
+        present : 1,
+        initial : 0
       }
 
       const expected = decrement()
@@ -186,7 +196,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init() ],
         index   : 0,
-        present : 0
+        present : 0,
+        initial : 0
       }
 
       const expected = init()
@@ -201,7 +212,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), [ increment(), decrement() ], increment() ],
         index   : 1,
-        present : 0
+        present : 0,
+        initial : 0
       }
 
       const expected = [ increment(), decrement() ]
@@ -220,7 +232,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), increment(), decrement() ],
         index   : 1,
-        present : 1
+        present : 1,
+        initial : 0
       }
 
       const expected = [ 2, 1 ]
@@ -235,7 +248,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), increment(), decrement(), decrement(), decrement(), decrement() ],
         index   : 3,
-        present : 1
+        present : 1,
+        initial : 0
       }
 
       const expected = [ 0, -1, -2 ]
@@ -250,10 +264,11 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment() ],
         index   : 1,
-        present : 1
+        present : 1,
+        initial : 0
       }
 
-      const expected = [ ]
+      const expected: CounterAction[] = [ ]
       const actual = selectors.getFutureStates(state)
 
       expect(actual).toEqual(expected)
@@ -265,7 +280,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), [ increment(), increment() ] ],
         index   : 1,
-        present : 1
+        present : 1,
+        initial : 0
       }
 
       const expected = [ 3 ]
@@ -284,7 +300,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), increment(), decrement() ],
         index   : 0,
-        present : 0
+        present : 0,
+        initial : 0
       }
 
       const expected = [ increment(), increment(), decrement() ]
@@ -299,10 +316,11 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init() ],
         index   : 0,
-        present : 0
+        present : 0,
+        initial : 0
       }
 
-      const expected = [ ]
+      const expected: CounterAction[] = [ ]
       const actual = selectors.getFutureActions(state)
 
       expect(actual).toEqual(expected)
@@ -314,7 +332,8 @@ describe('The undox.selectors', () => {
       const state: UndoxCounter = {
         history : [ init(), increment(), [ increment(), decrement() ] ],
         index   : 0,
-        present : 0
+        present : 0,
+        initial : 0
       }
 
       const expected = [ increment(), increment(), decrement() ]

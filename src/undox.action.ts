@@ -37,7 +37,7 @@ export interface RedoAction extends Action {
  */
 export interface GroupAction<A extends Action> extends Action {
   readonly type: UndoxTypes.GROUP
-  payload?: A[]
+  payload: A[]
 }
 
 /*

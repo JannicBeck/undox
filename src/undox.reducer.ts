@@ -11,7 +11,8 @@ import {
   Action,
   Reducer,
   Comparator,
-  UndoxState
+  UndoxState,
+  Limit
 } from './interfaces/public';
 
 import {
@@ -24,14 +25,20 @@ import {
 
 
 // helper used to flatten the history if grouped actions are in it
-const flatten = <T> (x: (T | T[])[]) => [].concat(...x) as T[]
+const flatten = <T> (x: (T | T[])[]) => [].concat(...x as any) as T[]
 
 // actions can be an array of arrays because of grouped actions, so we flatten it first
 const calculateState: CalculateState = (reducer, actions, state) => flatten(actions).reduce(reducer, state)
 
 const getFutureActions = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(state.index + 1)
 
-const getPastActionsWithPresent = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(0, state.index + 1)
+const getPastActionsWithPresent = <S, A extends Action>(state: UndoxState<S, A>, limit: Limit) => {
+
+  const pastExceeded = state.index >= limit.past
+  const startIdx = pastExceeded ? 1 : 0
+
+  return state.history.slice(startIdx, state.index + 1)
+}
 
 const getPastActions = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(0, state.index)
 
@@ -69,11 +76,11 @@ export const createSelectors = <S, A extends Action>(reducer: Reducer<S, A>) => 
 }
 
 
-const doNPastStatesExist   : DoNStatesExist = ({ history, index }, nStates) => index >= nStates
+const doNPastStatesExist   : DoNStatesExist = ({ index }, nStates) => index >= nStates
 const doNFutureStatesExist : DoNStatesExist = ({ history, index }, nStates) => history.length - 1 - index >= nStates
 
 
-const group: Group = (state, action, reducer, comparator) => {
+const group: Group = (state, action, reducer, comparator, limit) => {
 
   const presentState = getPresentState(state)
   const nextState = action.payload.reduce(reducer, state.present)
@@ -82,7 +89,8 @@ const group: Group = (state, action, reducer, comparator) => {
     return state
 
   return {
-    history : [ ...getPastActionsWithPresent(state), action.payload ],
+    ...state,
+    history : [ ...getPastActionsWithPresent(state, limit), action.payload ],
     index   : state.index + 1,
     present : nextState
   }
@@ -90,19 +98,22 @@ const group: Group = (state, action, reducer, comparator) => {
 }
 
 
-const undo: Undo = (reducer, state, { payload = 1 }) => {
+const undo: Undo = (reducer, state, { payload = 1 }, limit) => {
 
   const nPastStatesExist = doNPastStatesExist(state, payload)
   const index = nPastStatesExist ? state.index - payload : 0
+  const futureExceeded = (state.history.length - state.index) > limit.future
+  const history = futureExceeded ? state.history.slice(0, -payload) : state.history
 
   const newState = {
     ...state,
+    history,
     index
   }
 
   return {
     ...newState,
-    present : calculateState(reducer, getPastActionsWithPresent(newState))
+    present : calculateState(reducer as any, getPastActionsWithPresent(newState, limit), undefined as any)
   }
 
 }
@@ -120,17 +131,24 @@ const redo: Redo = (reducer, state, { payload = 1 }) => {
 }
 
 
-const delegate: Delegate = (state, action, reducer, comparator) => {
+const delegate: Delegate = (state, action, reducer, comparator, limit) => {
 
   const nextPresent = reducer(state.present, action)
+  const index = state.index
+  const pastLimitExceeded = limit && (index >= limit.past)
 
   if (comparator(state.present, nextPresent))
     return state
 
+  const newHistory = getPastActionsWithPresent(state, limit)
+  newHistory.push(action)
+
   return {
-    history : [ ...getPastActionsWithPresent(state), action ],
-    index   : state.index + 1,
-    present : nextPresent
+    ...state,
+    history : newHistory,
+    index   : pastLimitExceeded ? state.index : state.index + 1,
+    present : nextPresent,
+    initial : pastLimitExceeded ? reducer(state.initial, state.history[0] as any) : state.initial
   }
 
 }
@@ -138,14 +156,20 @@ const delegate: Delegate = (state, action, reducer, comparator) => {
 
 export const undox = <S, A extends Action>(
   reducer: Reducer<S, A>,
-  initAction = { type: 'undox/INIT' } as A,
-  comparator: Comparator<S> = (s1, s2) => s1 === s2
+  initAction = { type: 'undox/INIT' } as any,
+  comparator: Comparator<S> = (s1, s2) => s1 === s2,
+  limit?: Limit
   ) => {
+
+  const noLimit = { past: Infinity, future: Infinity }
+   
+  const initial = reducer(undefined, initAction)
 
   const initialState: UndoxState<S, A> = {
     history : [ initAction ],
-    present : reducer(undefined, initAction),
-    index   : 0
+    present : initial,
+    index   : 0,
+    initial
   }
 
   return (state = initialState, action: UndoxAction<A>) => {
@@ -153,16 +177,16 @@ export const undox = <S, A extends Action>(
     switch (action.type) {
 
       case UndoxTypes.UNDO:
-        return undo(reducer, state, action as UndoAction)
+        return undo(reducer, state, action as UndoAction, limit || noLimit)
 
       case UndoxTypes.REDO:
-        return redo(reducer, state, action as RedoAction)
+        return redo(reducer, state, action as RedoAction, limit || noLimit)
 
       case UndoxTypes.GROUP:
-        return group(state, action as GroupAction<A>, reducer, comparator)
+        return group(state, action as GroupAction<A>, reducer, comparator, limit || noLimit)
 
       default:
-        return delegate(state, action as A, reducer, comparator)
+        return delegate(state, action as A, reducer, comparator, limit || noLimit)
 
     }
 
