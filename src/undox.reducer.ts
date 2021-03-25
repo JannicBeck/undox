@@ -32,12 +32,9 @@ const calculateState: CalculateState = (reducer, actions, state) => flatten(acti
 
 const getFutureActions = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(state.index + 1)
 
-const getPastActionsWithPresent = <S, A extends Action>(state: UndoxState<S, A>, limit: Limit) => {
-
-  const pastExceeded = state.index >= limit.past
-  const startIdx = pastExceeded ? 1 : 0
-
-  return state.history.slice(startIdx, state.index + 1)
+const getPastActionsWithPresent = <S, A extends Action>(state: UndoxState<S, A>, isPastLimitExceeded: boolean) => {
+  const startIdx = isPastLimitExceeded ? 2 : 1
+  return [state.history[0],...state.history.slice(startIdx, state.index + 1)]
 }
 
 const getPastActions = <S, A extends Action>(state: UndoxState<S, A>) => state.history.slice(0, state.index)
@@ -88,9 +85,11 @@ const group: Group = (state, action, reducer, comparator, limit) => {
   if (comparator(presentState, nextState))
     return state
 
+  const isPastLimitExceeded = pastLimitExceeded(state.index, limit)
+
   return {
     ...state,
-    history : [ ...getPastActionsWithPresent(state, limit), action.payload ],
+    history : [ ...getPastActionsWithPresent(state, isPastLimitExceeded), action.payload ],
     index   : state.index + 1,
     present : nextState
   }
@@ -104,6 +103,7 @@ const undo: Undo = (reducer, state, { payload = 1 }, limit) => {
   const index = nPastStatesExist ? state.index - payload : 0
   const futureExceeded = (state.history.length - state.index) > limit.future
   const history = futureExceeded ? state.history.slice(0, -payload) : state.history
+  const isPastLimitExceeded = pastLimitExceeded(state.index, limit)
 
   const newState = {
     ...state,
@@ -113,7 +113,7 @@ const undo: Undo = (reducer, state, { payload = 1 }, limit) => {
 
   return {
     ...newState,
-    present : calculateState(reducer as any, getPastActionsWithPresent(newState, limit), undefined as any)
+    present : calculateState(reducer as any, getPastActionsWithPresent(!isPastLimitExceeded ? newState : {...newState, index: state.index }, isPastLimitExceeded), newState.initial)
   }
 
 }
@@ -130,26 +130,26 @@ const redo: Redo = (reducer, state, { payload = 1 }) => {
 
 }
 
+const pastLimitExceeded = (index: number, limit: Limit) => index >= limit.past
 
 const delegate: Delegate = (state, action, reducer, comparator, limit) => {
-
   const nextPresent = reducer(state.present, action)
   const index = state.index
-  const pastLimitExceeded = limit && (index >= limit.past)
+  const isPastLimitExceeded = pastLimitExceeded(index, limit)
 
   if (comparator(state.present, nextPresent))
     return state
 
-  const newHistory = getPastActionsWithPresent(state, limit)
-  newHistory.push(action)
+  const newHistory = [...getPastActionsWithPresent(state, isPastLimitExceeded), action]
 
-  return {
+  const newState = {
     ...state,
     history : newHistory,
-    index   : pastLimitExceeded ? state.index : state.index + 1,
+    index   : isPastLimitExceeded ? state.index : state.index + 1,
     present : nextPresent,
-    initial : pastLimitExceeded ? reducer(state.initial, state.history[0] as any) : state.initial
+    initial : isPastLimitExceeded ? reducer(state.initial, state.history[1] as any) : state.initial
   }
+  return newState
 
 }
 

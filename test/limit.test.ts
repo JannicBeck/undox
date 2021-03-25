@@ -22,7 +22,7 @@ describe('limit', () => {
     const action = increment()
 
     const expectedState: UndoxCounter = {
-      history : [ increment() ],
+      history : [ init() ],
       index   : 0,
       present : 1,
       initial : 0
@@ -47,20 +47,20 @@ describe('limit', () => {
     const action = increment()
 
     const expectedState: UndoxCounter = {
-      history : [ increment(), increment(), increment() ],
+      history : [ init(), increment(), increment() ],
       index   : 2,
       present : 3,
-      initial : 0
+      initial : 1
     }
 
     const actualState = reducer(initialState, action)
     expect(actualState).toEqual(expectedState)
 
     const expectedState2: UndoxCounter = {
-      history : [ increment(), increment(), increment() ],
+      history : [ init(), increment(), increment() ],
       index   : 2,
       present : 4,
-      initial : 1
+      initial : 2
     }
 
     const action2 = increment()
@@ -69,10 +69,10 @@ describe('limit', () => {
     expect(actualState2).toEqual(expectedState2)
 
     const expectedState3: UndoxCounter = {
-      history : [ increment(), increment(), decrement() ],
+      history : [ init(), increment(), decrement() ],
       index   : 2,
       present : 3,
-      initial : 2
+      initial : 3
     }
 
     const action3 = decrement()
@@ -82,6 +82,59 @@ describe('limit', () => {
 
   })
 
+  it('should limit the past if multiple actions', () => {
+
+    const reducer = undox(counter, init(), _ => false, { past: 2, future: Infinity })
+
+    const initialState: UndoxCounter = {
+      history : [ init() ],
+      index   : 0,
+      present : 0,
+      initial : 0
+    }
+
+    const actualState1 = reducer(initialState, increment())
+    const expectedState1 = {
+      history : [ init(), increment() ],
+      index   : 1,
+      present : 1,
+      initial : 0
+    }
+    expect(actualState1).toEqual(expectedState1)
+    const actualState2 = reducer(expectedState1, increment())
+    const expectedState2 = {
+      history : [ init(), increment(), increment() ],
+      index   : 2,
+      present : 2,
+      initial : 0
+    }
+    expect(actualState2).toEqual(expectedState2)
+    const actualState3 = reducer(expectedState2, increment())
+    const expectedState3 = {
+      history : [ init(), increment(), increment() ],
+      index   : 2,
+      present : 3,
+      initial : 1
+    }
+    expect(actualState3).toEqual(expectedState3)
+    const actualState4 = reducer(expectedState3, increment())
+    const expectedState4 = {
+      history : [ init(), increment(), increment() ],
+      index   : 2,
+      present : 4,
+      initial : 2
+    }
+    expect(actualState4).toEqual(expectedState4)
+    const actualState5 = reducer(expectedState4, undo())
+    const expectedState5 = {
+      history : [ init(), increment(), increment() ],
+      index   : 1,
+      present : 3,
+      initial : 2
+    }
+    expect(actualState5).toEqual(expectedState5)
+
+  })
 
   it('should allow no future', () => {
 
